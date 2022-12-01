@@ -207,6 +207,7 @@ class Gul_Fugl():
         arcade.draw_circle_filled(x, y, 8, arcade.csscolor.YELLOW)
         for punkt in self.spor:
             arcade.draw_circle_filled(*punkt, 3, arcade.csscolor.YELLOW)
+
 class Menu:
     def __init__(self):
         self.knap_antal = 4
@@ -214,7 +215,7 @@ class Menu:
         self.knap_hoejde = 80
         self.knap_afstand = 20
 
-    def tegn_rød_fugl_knap(self):
+    def tegn_roed_fugl_knap(self):
         arcade.draw_rectangle_outline(400, 520, self.knap_bredde, self.knap_hoejde, arcade.csscolor.BLACK, 2)
         arcade.draw_circle_filled(400, 520, 24, arcade.csscolor.RED)
 
@@ -230,6 +231,9 @@ class Menu:
         arcade.draw_rectangle_outline(400, 220, self.knap_bredde, self.knap_hoejde, arcade.csscolor.BLACK, 2)
         arcade.draw_circle_filled(400, 220, 24, arcade.csscolor.YELLOW)
 
+    def tegn_tekst(self):
+        arcade.draw_text("Tryk på en fugl(cirkel) for at vælge den\n\nHold venstre musseknap nede, træk i modsatte retning af hvor du vil skyde hen og slip for at affyre fuglen\n\nTryk på space for at aktivere fuglen", 25, 400, width=300, multiline=True, bold=True)
+
     def tjek_knap_klik(self, koordinat):
         klik_x, klik_y = koordinat
         if klik_x >= 320 and klik_x <= 480:
@@ -241,10 +245,11 @@ class Menu:
         return None
 
     def tegn(self):
-        self.tegn_rød_fugl_knap()
+        self.tegn_roed_fugl_knap()
         self.tegn_hvid_fugl_knap()
         self.tegn_blaa_fugl_knap()
         self.tegn_gul_fugl_knap()
+        self.tegn_tekst()
 
 class Vindue(arcade.Window):
     def __init__(self, width, height, title):
@@ -263,16 +268,16 @@ class Vindue(arcade.Window):
         if symbol == arcade.key.SPACE and self.fugl_valgt and self.fugl.fugl_affyret: # Hvis man trykker på mellemrum for at aktivere fuglens specielle evne, og fuglen er blevet affyret.
             if self.fugl_type == 1:
                 # Hvid hoppe fugl
-                haeldning_x = math.cos(self.fugl.vinkel)*self.fugl.hastighed
-                haeldning_y = -self.fugl.tyngdeacceleration*self.fugl.tid+self.fugl.hastighed*math.sin(self.fugl.vinkel)
-                hastighed = math.sqrt(haeldning_x**2+haeldning_y**2)
-                vinkel = math.atan(haeldning_y/haeldning_x)
+                hastighed_x = math.cos(self.fugl.vinkel)*self.fugl.hastighed
+                hastighed_y = -self.fugl.tyngdeacceleration*self.fugl.tid+self.fugl.hastighed*math.sin(self.fugl.vinkel)
+                hastighed = math.sqrt(hastighed_x**2+hastighed_y**2)
+                vinkel = math.atan(hastighed_y/hastighed_x)
 
-                if haeldning_x <= 0:
+                if hastighed_x <= 0:
                     vinkel += math.pi
 
-                if haeldning_y < 0:
-                    ekstra_vektor_y = math.fabs(haeldning_y) + 100
+                if hastighed_y < 0:
+                    ekstra_vektor_y = math.fabs(hastighed_y) + 100
                 else:
                     ekstra_vektor_y = 100
 
@@ -280,23 +285,26 @@ class Vindue(arcade.Window):
             elif self.fugl_type == 2:
                 # Blå flerdelende fugl
                 if len(self.fugl.under_fugle) < 3:
-                    haeldning_x = math.cos(self.fugl.vinkel) * self.fugl.hastighed
-                    haeldning_y = -self.fugl.tyngdeacceleration * self.fugl.tid + self.fugl.hastighed * math.sin(self.fugl.vinkel)
-                    hastighed = math.sqrt(haeldning_x ** 2 + haeldning_y ** 2)
+                    hastighed_x = math.cos(self.fugl.vinkel) * self.fugl.hastighed
+                    hastighed_y = -self.fugl.tyngdeacceleration * self.fugl.tid + self.fugl.hastighed * math.sin(self.fugl.vinkel)
+                    hastighed = math.sqrt(hastighed_x ** 2 + hastighed_y ** 2)
                     for i in range(3):
-                        vinkel = math.atan(haeldning_y/haeldning_x)+(i-1)*(math.pi/6)
+                        vinkel = math.atan(hastighed_y/hastighed_x)+(i-1)*(math.pi/6)
+                        if hastighed_x <= 0:
+                            vinkel += math.pi
                         self.fugl.skab_under_fugl(vinkel, hastighed)
             elif self.fugl_type == 3:
                 # Gul hurtig fugl
-                haeldning_x = math.cos(self.fugl.vinkel) * self.fugl.hastighed
-                haeldning_y = -self.fugl.tyngdeacceleration * self.fugl.tid + self.fugl.hastighed * math.sin(self.fugl.vinkel)
-                hastighed = math.sqrt(haeldning_x ** 2 + haeldning_y ** 2)
-                vinkel = math.atan(haeldning_y / haeldning_x)
+                hastighed_x = math.cos(self.fugl.vinkel) * self.fugl.hastighed
+                hastighed_y = -self.fugl.tyngdeacceleration * self.fugl.tid + self.fugl.hastighed * math.sin(self.fugl.vinkel)
+                hastighed = math.sqrt(hastighed_x ** 2 + hastighed_y ** 2)
+                vinkel = math.atan(hastighed_y / hastighed_x)
 
-                if haeldning_x <= 0:
+                if hastighed_x <= 0:
                     vinkel += math.pi
 
                 self.fugl.ny_parabel(self.fugl.koordinat, vinkel, hastighed + 100, tyngdeacceleration=35)
+
     def on_mouse_drag(self, x: int, y: int, dx: int, dy: int, buttons: int, modifiers: int):
         if self.fugl_valgt and not self.fugl.fugl_affyret:
             self.slangebosse.update((x, y))
@@ -323,24 +331,22 @@ class Vindue(arcade.Window):
 
                 delta_x = fugl_x-self.fugl.start_x
                 delta_y = fugl_y-self.fugl.start_y
-                haeldning = delta_y/delta_x
+                hastighed = delta_y/delta_x
                 afstand = math.sqrt(delta_x**2+delta_y**2)
-                vinkel = math.atan(haeldning)
-                if vinkel <= math.pi/2.5:  # pi/2.5 radianer svarer til 72 grader
-                    if math.ceil(afstand) >= MAX_AFSTAND:
-                        #x = delta_x / afstand + fugl_x
-                        #y = delta_y / afstand + fugl_y
-                        x = fugl_x
-                        y = fugl_y
+                vinkel = math.atan(hastighed)
 
+                if math.ceil(afstand) >= MAX_AFSTAND:
+                    #x = delta_x / afstand + fugl_x
+                    #y = delta_y / afstand + fugl_y
+                    x = fugl_x
+                    y = fugl_y
 
-                    if delta_x > 0:
-                        vinkel += math.pi
+                if delta_x > 0:
+                    vinkel += math.pi
 
-                    self.fugl.ny_parabel((x, y), vinkel, afstand*2)
-                    self.fugl.fugl_affyret = True
-                else:
-                    self.fugl.koordinat = (self.fugl.start_x, self.fugl.start_y)
+                self.fugl.ny_parabel((x, y), vinkel, afstand*2)
+                self.fugl.fugl_affyret = True
+
             elif not self.fugl_valgt:
                 knap = self.menu.tjek_knap_klik((x, y))
                 if knap != None: # knappen kan returnere 0, som behandles som false. Derfor tjekker den om knappen ikke er None, men hvis den returnerer 0, bliver conditionen true.
