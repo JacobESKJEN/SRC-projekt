@@ -17,9 +17,10 @@ class Slangebosse:
         self.mus_position = mouse_position
     def tegn(self):
         arcade.draw_rectangle_outline(*self.position, 40, 80, arcade.csscolor.BROWN, 5)
+        # Her havde jeg så også taenkt mig at forbedre slangeboessens udseende. Det naar jeg ikke.
 
-class Roed_Fugl():
-    def __init__(self, start_koordinat, vinkel, start_hastighed, tyngdeacceleration=70, sporlaengde=100):
+class Roed_Gul_Fugl():
+    def __init__(self, start_koordinat, vinkel, start_hastighed, tyngdeacceleration=70, sporlaengde=100, type=0):
         self.start_x, self.start_y = start_koordinat
         self.koordinat = start_koordinat
         self.tid = 0
@@ -27,13 +28,18 @@ class Roed_Fugl():
         self.hastighed = start_hastighed
         self.tyngdeacceleration = tyngdeacceleration
         self.spor = list()
-        self.har_aktiveret = True
+        self.har_aktiveret = False
         self.fugl_affyret = False
         self.sporlaengde = sporlaengde
+        if type == 0:  # Tjekker om det er den røde eller gule fugl.
+            self.farve = arcade.csscolor.RED
+        else:
+            self.farve = arcade.csscolor.YELLOW
 
     def opdater(self, delta_tid):
         x_fugl, y_fugl = self.koordinat
-        if self.fugl_affyret and y_fugl > 0:
+        hastighed_y = -self.tyngdeacceleration * self.tid + self.hastighed * math.sin(self.vinkel)
+        if self.fugl_affyret and (y_fugl > 60 or hastighed_y > 0):
             self.tid += delta_tid
             x = self.hastighed * math.cos(self.vinkel) * self.tid + self.start_x
             y = -(1 / 2) * self.tyngdeacceleration * self.tid ** 2 + self.hastighed * math.sin(
@@ -44,22 +50,24 @@ class Roed_Fugl():
                 self.spor.pop(0)
 
     def ny_parabel(self, start_koordinat, vinkel, start_hastighed, tyngdeacceleration=70):
-        if not self.fugl_affyret:
+        if not self.har_aktiveret:
             self.start_x, self.start_y = start_koordinat
             self.tid = 0
             self.vinkel = vinkel
             self.hastighed = start_hastighed
             self.tyngdeacceleration = tyngdeacceleration
+            if self.fugl_affyret:
+                self.har_aktiveret = True
 
 
     def tegn(self):
         x, y = self.koordinat
-        arcade.draw_circle_filled(x, y, 8, arcade.csscolor.RED)
+        arcade.draw_circle_filled(x, y, 8, self.farve)
         for punkt in self.spor:
-            arcade.draw_circle_filled(*punkt, 3, arcade.csscolor.RED)
+            arcade.draw_circle_filled(*punkt, 3, self.farve)
 
 class Hvid_Fugl():
-    def __init__(self, start_koordinat, vinkel, start_hastighed, tyngdeacceleration=70, sporlaengde=100):
+    def __init__(self, start_koordinat, vinkel, start_hastighed, tyngdeacceleration=70, sporlaengde=100, type=1):
         self.start_x, self.start_y = start_koordinat
         self.koordinat = start_koordinat
         self.tid = 0
@@ -71,17 +79,15 @@ class Hvid_Fugl():
         self.fugl_affyret = False
         self.sporlaengde = sporlaengde
         self.ekstra_vektor_y = 0
-        self.tid_siden_aktivering = 0
 
     def opdater(self, delta_tid):
         x_fugl, y_fugl = self.koordinat
-        if self.fugl_affyret and y_fugl > 0:
-            if self.har_aktiveret:
-                self.tid_siden_aktivering += delta_tid
+        hastighed_y = -self.tyngdeacceleration * self.tid + self.hastighed * math.sin(self.vinkel)
+        if self.fugl_affyret and (y_fugl > 60 or hastighed_y > 0):
             self.tid += delta_tid
             x = self.hastighed * math.cos(self.vinkel) * self.tid + self.start_x
             y = -(1 / 2) * self.tyngdeacceleration * self.tid ** 2 + self.hastighed * math.sin(
-                self.vinkel) * self.tid + self.ekstra_vektor_y * self.tid_siden_aktivering + self.start_y
+                self.vinkel) * self.tid + self.ekstra_vektor_y * self.tid + self.start_y
             self.koordinat = (x, y)
             self.spor.append(self.koordinat)
             if len(self.spor) > self.sporlaengde:
@@ -105,7 +111,7 @@ class Hvid_Fugl():
             arcade.draw_circle_filled(*punkt, 3, arcade.csscolor.WHITE)
 
 class Blaa_Fugl():
-    def __init__(self, start_koordinat, vinkel, start_hastighed, tyngdeacceleration=70, sporlaengde=100, lille=False):
+    def __init__(self, start_koordinat, vinkel, start_hastighed, tyngdeacceleration=70, sporlaengde=100, lille=False, type=2):
         self.start_x, self.start_y = start_koordinat
         self.koordinat = start_koordinat
         self.tid = 0
@@ -121,7 +127,8 @@ class Blaa_Fugl():
 
     def opdater(self, delta_tid):
         x_fugl, y_fugl = self.koordinat
-        if self.fugl_affyret and y_fugl > 0:
+        hastighed_y = -self.tyngdeacceleration * self.tid + self.hastighed * math.sin(self.vinkel)
+        if self.fugl_affyret and (y_fugl > 60 or hastighed_y > 0):
             self.tid += delta_tid
             x = self.hastighed * math.cos(self.vinkel) * self.tid + self.start_x
             y = -(1 / 2) * self.tyngdeacceleration * self.tid ** 2 + self.hastighed * math.sin(
@@ -161,59 +168,11 @@ class Blaa_Fugl():
         for under_fugl in self.under_fugle:  # Hvis fuglen har delt sig i tre, er laengden af self.under_fugle > 0.
             under_fugl.tegn()
 
-class Gul_Fugl():
-    def __init__(self, start_koordinat, vinkel, start_hastighed, tyngdeacceleration=70, sporlaengde=100):
-        self.start_x, self.start_y = start_koordinat
-        self.koordinat = start_koordinat
-        self.tid = 0
-        self.vinkel = vinkel
-        self.hastighed = start_hastighed
-        self.tyngdeacceleration = tyngdeacceleration
-        self.spor = list()
-        self.har_aktiveret = False
-        self.fugl_affyret = False
-        self.sporlaengde = sporlaengde
-
-    def opdater(self, delta_tid):
-        x_fugl, y_fugl = self.koordinat
-        if self.fugl_affyret and y_fugl > 0:
-            self.tid += delta_tid
-            x = self.hastighed * math.cos(self.vinkel) * self.tid + self.start_x
-            y = -(1 / 2) * self.tyngdeacceleration * self.tid ** 2 + self.hastighed * math.sin(
-                self.vinkel) * self.tid + self.start_y
-            self.koordinat = (x, y)
-            self.spor.append(self.koordinat)
-            if len(self.spor) > self.sporlaengde:
-                self.spor.pop(0)
-
-    def ny_parabel(self, start_koordinat, vinkel, start_hastighed, tyngdeacceleration=70):
-        if not self.fugl_affyret:
-            self.start_x, self.start_y = start_koordinat
-            self.tid = 0
-            self.vinkel = vinkel
-            self.hastighed = start_hastighed
-            self.tyngdeacceleration = tyngdeacceleration
-        else:
-            if not self.har_aktiveret:  # Else koerer kun naar fuglen har affyret, og saa tjekker den om fuglen har aktiveret foer eler ej.
-                self.start_x, self.start_y = start_koordinat
-                self.tid = 0
-                self.vinkel = vinkel
-                self.hastighed = start_hastighed
-                self.tyngdeacceleration = tyngdeacceleration
-                self.har_aktiveret = True
-
-    def tegn(self):
-        x, y = self.koordinat
-        arcade.draw_circle_filled(x, y, 8, arcade.csscolor.YELLOW)
-        for punkt in self.spor:
-            arcade.draw_circle_filled(*punkt, 3, arcade.csscolor.YELLOW)
-
 class Menu:
     def __init__(self):
         self.knap_antal = 4
         self.knap_bredde = 120
         self.knap_hoejde = 80
-        self.knap_afstand = 20
 
     def tegn_roed_fugl_knap(self):
         arcade.draw_rectangle_outline(400, 520, self.knap_bredde, self.knap_hoejde, arcade.csscolor.BLACK, 2)
@@ -258,7 +217,7 @@ class Vindue(arcade.Window):
         self.fugl_valgt = False
         self.fugl = None
         self.fugl_type = None
-        self.fugle = {"0": Roed_Fugl, "1": Hvid_Fugl, "2": Blaa_Fugl, "3": Gul_Fugl}
+        self.fugle = {"0": Roed_Gul_Fugl, "1": Hvid_Fugl, "2": Blaa_Fugl, "3": Roed_Gul_Fugl}
         self.menu = Menu()
 
     def setup(self):
@@ -352,8 +311,7 @@ class Vindue(arcade.Window):
                 if knap != None: # knappen kan returnere 0, som behandles som false. Derfor tjekker den om knappen ikke er None, men hvis den returnerer 0, bliver conditionen true.
                     self.fugl_type = knap
                     self.fugl_valgt = True
-
-                    self.fugl = self.fugle.get(str(knap))((100, 100), 0, 0, sporlaengde=200)
+                    self.fugl = self.fugle.get(str(knap))((100, 100), 0, 0, sporlaengde=200, type=knap)
 
     def update(self, delta_time: float):
         if self.fugl_valgt:
@@ -362,6 +320,10 @@ class Vindue(arcade.Window):
     def on_draw(self):
         self.clear()
         if self.fugl_valgt:
+            # tegn jorden
+            arcade.draw_rectangle_filled(400, 25, 800, 55, arcade.color.BROWN)
+            arcade.draw_rectangle_filled(400, 55, 800, 10, arcade.color.GREEN)
+
             self.fugl.tegn()
             self.slangebosse.tegn()
 
