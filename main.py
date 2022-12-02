@@ -14,7 +14,7 @@ class Slangebosse:
         self.position = start_position
         self.mus_position = start_position
     def update(self, mouse_position):
-        self.mus_position = mouse_position
+        self.mus_position = mouse_position  # Ville bruge mus-position til at tegne elastikken. Naar jeg ikke.
     def tegn(self):
         arcade.draw_rectangle_outline(*self.position, 40, 80, arcade.csscolor.BROWN, 5)
         # Her havde jeg så også taenkt mig at forbedre slangeboessens udseende. Det naar jeg ikke.
@@ -39,7 +39,7 @@ class Roed_Gul_Fugl():
     def opdater(self, delta_tid):
         x_fugl, y_fugl = self.koordinat
         hastighed_y = -self.tyngdeacceleration * self.tid + self.hastighed * math.sin(self.vinkel)
-        if self.fugl_affyret and (y_fugl > 60 or hastighed_y > 0):
+        if self.fugl_affyret and (y_fugl > 60 or hastighed_y > 0):  # Tjekker at fuglen er affyret, og ikke er under jorden/bliver under jorden.
             self.tid += delta_tid
             x = self.hastighed * math.cos(self.vinkel) * self.tid + self.start_x
             y = -(1 / 2) * self.tyngdeacceleration * self.tid ** 2 + self.hastighed * math.sin(
@@ -83,7 +83,7 @@ class Hvid_Fugl():
     def opdater(self, delta_tid):
         x_fugl, y_fugl = self.koordinat
         hastighed_y = -self.tyngdeacceleration * self.tid + self.hastighed * math.sin(self.vinkel)
-        if self.fugl_affyret and (y_fugl > 60 or hastighed_y > 0):
+        if self.fugl_affyret and (y_fugl > 60 or hastighed_y > 0):  # Tjekker at fuglen er affyret, og ikke er under jorden/bliver under jorden.
             self.tid += delta_tid
             x = self.hastighed * math.cos(self.vinkel) * self.tid + self.start_x
             y = -(1 / 2) * self.tyngdeacceleration * self.tid ** 2 + self.hastighed * math.sin(
@@ -122,13 +122,13 @@ class Blaa_Fugl():
         self.har_aktiveret = False
         self.fugl_affyret = lille
         self.sporlaengde = sporlaengde
-        self.lille_stoerrelse = lille
-        self.under_fugle = list()
+        self.lille_stoerrelse = lille  # Hvis den er True, er det en lille fugl.
+        self.under_fugle = list()  # De små fugle
 
     def opdater(self, delta_tid):
         x_fugl, y_fugl = self.koordinat
         hastighed_y = -self.tyngdeacceleration * self.tid + self.hastighed * math.sin(self.vinkel)
-        if self.fugl_affyret and (y_fugl > 60 or hastighed_y > 0):
+        if self.fugl_affyret and (y_fugl > 60 or hastighed_y > 0):  # Tjekker at fuglen er affyret, og ikke er under jorden/bliver under jorden.
             self.tid += delta_tid
             x = self.hastighed * math.cos(self.vinkel) * self.tid + self.start_x
             y = -(1 / 2) * self.tyngdeacceleration * self.tid ** 2 + self.hastighed * math.sin(
@@ -195,11 +195,11 @@ class Menu:
 
     def tjek_knap_klik(self, koordinat):
         klik_x, klik_y = koordinat
-        if klik_x >= 320 and klik_x <= 480:
+        if klik_x >= 320 and klik_x <= 480:  # har man trykket indenfor det korrekte x-interval.
             for i in range(self.knap_antal):
                 knap_y_min = 470-100*i
                 knap_y_max = 570-100*i
-                if klik_y >= knap_y_min and klik_y <= knap_y_max:
+                if klik_y >= knap_y_min and klik_y <= knap_y_max:  # Har man trykket indenfor det korrekte y-interval for den specifikke knap.
                     return i
         return None
 
@@ -217,7 +217,7 @@ class Vindue(arcade.Window):
         self.fugl_valgt = False
         self.fugl = None
         self.fugl_type = None
-        self.fugle = {"0": Roed_Gul_Fugl, "1": Hvid_Fugl, "2": Blaa_Fugl, "3": Roed_Gul_Fugl}
+        self.fugle = {"0": Roed_Gul_Fugl, "1": Hvid_Fugl, "2": Blaa_Fugl, "3": Roed_Gul_Fugl} # dict, der faar menu-knapper til at fungere
         self.menu = Menu()
 
     def setup(self):
@@ -243,13 +243,13 @@ class Vindue(arcade.Window):
                 self.fugl.ny_parabel(self.fugl.koordinat, vinkel, hastighed, skub_vektor_y=ekstra_vektor_y)
             elif self.fugl_type == 2:
                 # Blå flerdelende fugl
-                if len(self.fugl.under_fugle) < 3:
+                if len(self.fugl.under_fugle) < 3:  # Hvis den ikke allerede har aktiveret.
                     hastighed_x = math.cos(self.fugl.vinkel) * self.fugl.hastighed
                     hastighed_y = -self.fugl.tyngdeacceleration * self.fugl.tid + self.fugl.hastighed * math.sin(self.fugl.vinkel)
                     hastighed = math.sqrt(hastighed_x ** 2 + hastighed_y ** 2)
                     for i in range(3):
                         vinkel = math.atan(hastighed_y/hastighed_x)+(i-1)*(math.pi/6)
-                        if hastighed_x <= 0:
+                        if hastighed_x <= 0:  # Sikrer at man bevæger sig i de korrekte retning ift. x-aksen.
                             vinkel += math.pi
                         self.fugl.skab_under_fugl(vinkel, hastighed)
             elif self.fugl_type == 3:
@@ -266,7 +266,7 @@ class Vindue(arcade.Window):
 
     def on_mouse_drag(self, x: int, y: int, dx: int, dy: int, buttons: int, modifiers: int):
         if self.fugl_valgt and not self.fugl.fugl_affyret:
-            self.slangebosse.update((x, y))
+            self.slangebosse.update((x, y)) # Dette var ment til at skabe elastikken. Det naaede jeg ikke.
             delta_x = x - self.fugl.start_x
             delta_y = y - self.fugl.start_y
             afstand = math.sqrt(delta_x**2+delta_y**2)
@@ -324,10 +324,11 @@ class Vindue(arcade.Window):
             arcade.draw_rectangle_filled(400, 25, 800, 55, arcade.color.BROWN)
             arcade.draw_rectangle_filled(400, 55, 800, 10, arcade.color.GREEN)
 
+            # tegn fugl og slangebosse
             self.fugl.tegn()
             self.slangebosse.tegn()
 
-            # gå til menu knappen øverst i højre hjørne
+            # gaa til menu knappen oeverst i hoejre hjoerne
             arcade.draw_rectangle_outline(MENU_KNAP_CENTRUM_X, MENU_KNAP_CENTRUM_Y, MENU_KNAP_BREDDE, MENU_KNAP_HOEJDE, arcade.csscolor.BROWN, 2)
             for i in range(3):
                 arcade.draw_rectangle_filled(MENU_KNAP_CENTRUM_X, MENU_KNAP_CENTRUM_Y+(12+5)-i*17, 40, 12, arcade.csscolor.BROWN)
